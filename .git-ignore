@@ -1,0 +1,18 @@
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+
+# Database
+*.db
+
+# Env files
+.env
+
+# Mac junk
+.DS_Store
+
+# Logs
+*.log
