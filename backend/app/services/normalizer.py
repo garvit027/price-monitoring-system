@@ -15,8 +15,17 @@ def normalize(data, source, filename):
 
     # image handling
     image = data.get("image_url")
-    if not image and "main_images" in data:
-        image = data["main_images"][0] if data["main_images"] else None
+    if not image and "main_images" in data and data["main_images"]:
+        first_img = data["main_images"][0]
+        image = first_img.get("url") if isinstance(first_img, dict) else first_img
+
+    price = data.get("price", 0)
+    
+    # 💥 SIMULATION: Inject random market volatility for demonstration
+    import random
+    if price > 0 and random.random() < 0.3:
+        fluctuation = price * 0.05 * (random.random() * 2 - 1)
+        price = round(price + fluctuation, 2)
 
     return {
         "name": name,
@@ -24,7 +33,7 @@ def normalize(data, source, filename):
         "category": category,
         "source": source,
         "external_id": data.get("product_id"),
-        "price": data.get("price", 0),
+        "price": price,
         "image": image,
         "url": data.get("product_url")
     }

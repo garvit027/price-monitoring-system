@@ -1,11 +1,11 @@
-import time
+import asyncio
 
-def send_notification(message):
+async def send_notification(message):
     try:
         print(f"🔔 Sending notification: {message}")
 
         # simulate API call delay
-        time.sleep(1)
+        await asyncio.sleep(1)
 
         print("✅ Notification sent")
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.models.product import Product
@@ -18,10 +18,13 @@ def get_db():
         db.close() 
 
 
-# 🔄 REFRESH DATA (UPDATED)
+# 🔄 REFRESH DATA (RESILIENT)
 @router.post("/refresh")
-def refresh(db: Session = Depends(get_db)):
-    result = ingest_products(db)
+async def refresh(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    # We execute sync in the foreground but we should allow it to take time
+    # Actually, the requirement says "Trigger a data refresh". 
+    # Let's perform it but optimize the notification overhead.
+    result = await ingest_products(db, background_tasks=background_tasks)
     return result
 
 
@@ -88,24 +91,33 @@ def get_price_history(product_id: int, db: Session = Depends(get_db)):
     return history
 
 
-# 📊 BASIC ANALYTICS
+from sqlalchemy import func
+
+# 📊 AGGREGATE ANALYTICS
 @router.get("/analytics")
 def analytics(db: Session = Depends(get_db)):
-    products = db.query(Product).all()
-
-    total = len(products)
-
+    total = db.query(Product).count()
     if total == 0:
         return {
             "total_products": 0,
-            "average_price": 0
+            "average_price": 0,
+            "by_source": {},
+            "by_category": {}
         }
 
-    avg_price = sum(p.price for p in products) / total
+    avg_price = db.query(func.avg(Product.price)).scalar() or 0
+
+    sources = db.query(Product.source, func.count(Product.id)).group_by(Product.source).all()
+    by_source = {s[0]: s[1] for s in sources}
+
+    categories = db.query(Product.category, func.avg(Product.price)).group_by(Product.category).all()
+    by_category = {c[0]: round(c[1], 2) for c in categories}
 
     return {
         "total_products": total,
-        "average_price": round(avg_price, 2)
+        "average_price": round(avg_price, 2),
+        "by_source": by_source,
+        "by_category": by_category
     }
 from app.models.event import Event
 

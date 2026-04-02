@@ -1,0 +1,249 @@
+INFO:     Started server process [29873]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:63826 - "POST /api/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63826 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63826 - "GET /api/events HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63848 - "POST /api/refresh HTTP/1.1" 200 OK
+🔔 Sending notification: Chanel Chanel Golden Leather Belt, 2008 price changed from 992.75 → 1003.78
+INFO:     127.0.0.1:63848 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63848 - "GET /api/events HTTP/1.1" 200 OK
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Platinum Diamond Flower Pendant Necklace price changed from 2348.13 → 2435.0
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Sterling Silver No 1 Lock Charm Pendant price changed from 154.55 → 165.9
+✅ Notification sent
+🔔 Sending notification: Chanel, Karl Lagerfeld for Chanel CHANEL by Karl Lagerfeld 00A 2000/2001 leather Belt with brushed metal buckle price changed from 852.37 → 850.0
+✅ Notification sent
+🔔 Sending notification: Chanel, Karl Lagerfeld for Chanel Chanel Black and White Leather Belt Spring-Summer Collection, 1995 price changed from 1665.75 → 1741.77
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Platinum Diamond Victoria Key Pendant price changed from 4445.0 → 4637.75
+✅ Notification sent
+🔔 Sending notification: amiri Amiri Washed Filigree T-Shirt price changed from 409.23 → 420.76
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Platinum Diamond .41ct Solitaire Engagement Ring 51 5.75 price changed from 1035.0 → 1035.11
+✅ Notification sent
+🔔 Sending notification: Chanel Chanel Rare Jewelled Eagle Black and Gold Runway Belt or Necklace price changed from 3331.49 → 3165.09
+✅ Notification sent
+🔔 Sending notification: Chanel Chanel Gilded Metal with a Rectangular Hammered Buckle Belt price changed from 2974.55 → 3046.36
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Sterling Silver Enamel Gift Box Charm Blue price changed from 307.56 → 315.0
+✅ Notification sent
+🔔 Sending notification: amiri Amiri Hollywood Burgundy Tee price changed from 343.32 → 350.0
+✅ Notification sent
+🔔 Sending notification: Chanel 1993 Runway Vintage CHANEL Massive Leather Chain Belt Black Gold price changed from 2587.28 → 2700.0
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany 18K Rose Gold Diamond Fleur de Lis Ring 53 6.5 price changed from 2095.0 → 2153.32
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany 18K Yellow White Gold Tiffany Narrow Lock Bangle Bracelet price changed from 4297.37 → 4277.58
+✅ Notification sent
+🔔 Sending notification: amiri Amiri Precious Memories Logo Hoodie NEW 1150$ price changed from 1150.0 → 1116.9
+✅ Notification sent
+🔔 Sending notification: amiri Amiri Kilda jacket price changed from 367.24 → 380.0
+✅ Notification sent
+🔔 Sending notification: Chanel Chanel Gold Metal Paris Shangai CC Cylinders Necklace or Belt price changed from 2149.93 → 2260.66
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Sterling Silver Eiffel Tower Charm price changed from 205.0 → 209.92
+✅ Notification sent
+🔔 Sending notification: amiri Amiri Black Distressed Cotton Knit Crewneck Sweatshirt Sz M price changed from 199.37 → 200.0
+INFO:     127.0.0.1:63854 - "GET /api/products/80 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63855 - "GET /api/products/80/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63855 - "GET /api/products/80/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63854 - "GET /api/products/80 HTTP/1.1" 200 OK
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Sterling Silver Enamel LOVE YOU Heart Pendant Necklace Blue price changed from 290.0 → 283.75
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany 18K Yellow Gold T Wire Bracelet price changed from 2065.0 → 2114.65
+✅ Notification sent
+🔔 Sending notification: amiri Amiri Skeleton Embroidered Knitted Cardigan Black Sz XL price changed from 577.39 → 550.0
+✅ Notification sent
+🔔 Sending notification: Chanel, Karl Lagerfeld for Chanel Chanel belt Fall 1994 price changed from 8305.9 → 8423.26
+INFO:     127.0.0.1:63854 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63855 - "GET /api/events HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63854 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63854 - "GET /api/events HTTP/1.1" 200 OK
+✅ Notification sent
+🔔 Sending notification: Chanel Rare Chanel Black Patent Oversized CC Stone Wide Belt price changed from 1665.51 → 1650.0
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Sterling Silver Open Heart Drop Earrings price changed from 330.71 → 345.0
+INFO:     127.0.0.1:63855 - "GET /api/products/73/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63854 - "GET /api/products/73 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63855 - "GET /api/products/73/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63854 - "GET /api/products/73 HTTP/1.1" 200 OK
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany 18K Rose Gold Medium T Wire Hoop Earrings price changed from 1530.95 → 1480.0
+✅ Notification sent
+🔔 Sending notification: amiri RARE Amiri MX-1 “Dirty Indigo” Red Bandana Patch Jeans price changed from 449.0 → 447.65
+✅ Notification sent
+🔔 Sending notification: Chanel Chanel La Pausa 'CC' Logo Leather Belt price changed from 1415.58 → 1370.93
+✅ Notification sent
+🔔 Sending notification: amiri Amiri ‘Lovers’ S/S Tee price changed from 435.19 → 431.98
+✅ Notification sent
+🔔 Sending notification: Chanel Vintage "CHANEL" ID Logo Chunky Gold Chain Statement Belt price changed from 1262.87 → 1300.0
+✅ Notification sent
+🔔 Sending notification: amiri Amiri celebrate the blessing white tee tshirt stars price changed from 155.0 → 153.42
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany 18K Rose Gold Diamond Atlas Pierced Pendant Necklace price changed from 825.08 → 805.14
+✅ Notification sent
+🔔 Sending notification: Chanel Chanel CC Rhinestone Diamond Belt price changed from 14466.96 → 15079.35
+✅ Notification sent
+🔔 Sending notification: amiri $1650 Blue Quad MA Logo Print Puffer Jacket price changed from 450.0 → 445.72
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany 18K Rose Gold Medium T Wire Hoop Earrings price changed from 1205.83 → 1265.0
+✅ Notification sent
+🔔 Sending notification: amiri AMIRI Gray Pegasus Horse Bowling Shirt Silk price changed from 540.0 → 522.03
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Sterling Silver 1837 Lock Charm price changed from 215.06 → 205.0
+✅ Notification sent
+🔔 Sending notification: Chanel Chanel black suede multicoloured stones belt price changed from 1886.58 → 1859.2
+✅ Notification sent
+🔔 Sending notification: Chanel, Karl Lagerfeld for Chanel Chanel Vintage Iconic CC Logo Navy Leather intertwined Chain Link Necklace Belt price changed from 2048.07 → 2046.85
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Platinum Diamond Ruby Soleste Ring 49 5 price changed from 6295.0 → 6456.81
+✅ Notification sent
+🔔 Sending notification: amiri Amiri ouija board hoodie price changed from 599.0 → 578.21
+✅ Notification sent
+INFO:     127.0.0.1:64359 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64359 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64361 - "GET /api/events HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64361 - "GET /api/events HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64361 - "POST /api/refresh HTTP/1.1" 200 OK
+🔔 Sending notification: Tiffany Tiffany 18K Yellow Gold Interlocking Atlas Open Pendant Necklace price changed from 1430.0 → 1361.7
+INFO:     127.0.0.1:64361 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64361 - "GET /api/events HTTP/1.1" 200 OK
+✅ Notification sent
+🔔 Sending notification: Chanel Chanel Golden Leather Belt, 2008 price changed from 1003.78 → 999.45
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Sterling Silver No 1 Lock Charm Pendant price changed from 165.9 → 155.17
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Sterling Silver Cultured Pearl Hibiscus Flower Station Necklace price changed from 585.0 → 584.57
+✅ Notification sent
+🔔 Sending notification: Chanel, Karl Lagerfeld for Chanel Chanel Black and White Leather Belt Spring-Summer Collection, 1995 price changed from 1741.77 → 1665.75
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Platinum Diamond Victoria Key Pendant price changed from 4637.75 → 4445.0
+INFO:     127.0.0.1:64361 - "GET /api/products/89 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64368 - "GET /api/products/89/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64368 - "GET /api/products/89/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64361 - "GET /api/products/89 HTTP/1.1" 200 OK
+✅ Notification sent
+🔔 Sending notification: amiri Amiri Rendered Shot Hoodie price changed from 834.0 → 862.49
+✅ Notification sent
+🔔 Sending notification: amiri Amiri Washed Filigree T-Shirt price changed from 420.76 → 425.0
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Platinum Diamond .41ct Solitaire Engagement Ring 51 5.75 price changed from 1035.11 → 1035.0
+✅ Notification sent
+🔔 Sending notification: Chanel Chanel Rare Jewelled Eagle Black and Gold Runway Belt or Necklace price changed from 3165.09 → 3270.53
+✅ Notification sent
+🔔 Sending notification: Chanel Chanel Gilded Metal with a Rectangular Hammered Buckle Belt price changed from 3046.36 → 2974.55
+✅ Notification sent
+🔔 Sending notification: amiri Amiri Hollywood Burgundy Tee price changed from 350.0 → 348.65
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany 18K Rose Gold Small T Smile Pendant Necklace price changed from 1220.0 → 1179.43
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany 18K Rose Gold Diamond Fleur de Lis Ring 53 6.5 price changed from 2153.32 → 2178.52
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany 18K Yellow White Gold Tiffany Narrow Lock Bangle Bracelet price changed from 4277.58 → 4340.0
+✅ Notification sent
+🔔 Sending notification: amiri Amiri Precious Memories Logo Hoodie NEW 1150$ price changed from 1116.9 → 1128.79
+✅ Notification sent
+🔔 Sending notification: Chanel Chanel Vintage Lion Head Medallion Gold Toned Belt price changed from 2974.55 → 2919.31
+INFO:     127.0.0.1:64371 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64371 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64373 - "GET /api/events HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64373 - "GET /api/events HTTP/1.1" 200 OK
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany 18K Yellow Gold Diamond T1 Open Hoop Earrings price changed from 7030.0 → 6729.64
+INFO:     127.0.0.1:64371 - "GET /api/products/86/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64373 - "GET /api/products/86 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64371 - "GET /api/products/86/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64373 - "GET /api/products/86 HTTP/1.1" 200 OK
+✅ Notification sent
+🔔 Sending notification: Chanel Chanel 1996 A belt Gripoix 87cm 34" price changed from 2899.0 → 3000.29
+✅ Notification sent
+🔔 Sending notification: Chanel Chanel Gold Metal Paris Shangai CC Cylinders Necklace or Belt price changed from 2260.66 → 2302.15
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Sterling Silver Eiffel Tower Charm price changed from 209.92 → 205.0
+✅ Notification sent
+🔔 Sending notification: amiri Amiri Kisses Fading Dye Knitwear Sweaters price changed from 506.0 → 527.54
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Sterling Silver Enamel LOVE YOU Heart Pendant Necklace Blue price changed from 283.75 → 281.45
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany 18K Yellow Gold T Wire Bracelet price changed from 2114.65 → 2065.0
+✅ Notification sent
+🔔 Sending notification: Chanel, Karl Lagerfeld for Chanel Chanel belt Fall 1994 price changed from 8423.26 → 8305.9
+✅ Notification sent
+🔔 Sending notification: Chanel Rare Chanel Black Patent Oversized CC Stone Wide Belt price changed from 1650.0 → 1650.22
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany 18K Rose Gold Medium T Wire Hoop Earrings price changed from 1480.0 → 1474.7
+✅ Notification sent
+🔔 Sending notification: amiri RARE Amiri MX-1 “Dirty Indigo” Red Bandana Patch Jeans price changed from 447.65 → 449.0
+✅ Notification sent
+🔔 Sending notification: amiri Amiri ‘Lovers’ S/S Tee price changed from 431.98 → 415.0
+✅ Notification sent
+🔔 Sending notification: amiri Amiri celebrate the blessing white tee tshirt stars price changed from 153.42 → 155.0
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany 18K Rose Gold Diamond Atlas Pierced Pendant Necklace price changed from 805.14 → 766.89
+✅ Notification sent
+🔔 Sending notification: Chanel Chanel Black Leather Quilted Handbag Buckle Belt 75/30 price changed from 950.0 → 993.25
+✅ Notification sent
+🔔 Sending notification: Chanel Chanel CC Rhinestone Diamond Belt price changed from 15079.35 → 14950.25
+✅ Notification sent
+🔔 Sending notification: amiri $1650 Blue Quad MA Logo Print Puffer Jacket price changed from 445.72 → 450.0
+✅ Notification sent
+🔔 Sending notification: amiri AMIRI Gray Pegasus Horse Bowling Shirt Silk price changed from 522.03 → 540.0
+INFO:     127.0.0.1:64377 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64377 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64379 - "GET /api/events HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64379 - "GET /api/events HTTP/1.1" 200 OK
+✅ Notification sent
+🔔 Sending notification: amiri Amiri Patchwork Quilt Crewneck Sweatshirt price changed from 325.0 → 318.04
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Platinum Diamond Jazz Band Ring 50 5.25 price changed from 1795.0 → 1855.46
+✅ Notification sent
+🔔 Sending notification: Chanel Chanel black suede multicoloured stones belt price changed from 1859.2 → 1808.53
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Sterling Silver Paloma Picasso Graffiti X Pendant Necklace price changed from 240.0 → 238.33
+✅ Notification sent
+🔔 Sending notification: Chanel, Karl Lagerfeld for Chanel Chanel Vintage Iconic CC Logo Navy Leather intertwined Chain Link Necklace Belt price changed from 2046.85 → 2048.07
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany Platinum Diamond Ruby Soleste Ring 49 5 price changed from 6456.81 → 6469.35
+✅ Notification sent
+🔔 Sending notification: amiri Amiri Varsity Jacket price changed from 900.0 → 897.23
+✅ Notification sent
+🔔 Sending notification: Chanel, Karl Lagerfeld for Chanel Chanel starry belt 1995 price changed from 3807.42 → 3910.47
+✅ Notification sent
+🔔 Sending notification: Tiffany Tiffany 18K Rose Gold Narrow T Wire Bracelet price changed from 2115.0 → 2119.3
+✅ Notification sent
+🔔 Sending notification: amiri Amiri ouija board hoodie price changed from 578.21 → 611.0
+✅ Notification sent
+INFO:     127.0.0.1:65518 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65518 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65520 - "GET /api/events HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65520 - "GET /api/events HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65523 - "GET /api/products?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65523 - "GET /api/products?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65523 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65523 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65526 - "GET /api/events HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65526 - "GET /api/events HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65532 - "GET /api/products?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65532 - "GET /api/products?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65532 - "GET /api/products/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65534 - "GET /api/products/1/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65534 - "GET /api/products/1/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65532 - "GET /api/products/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49152 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49182 - "GET /api/events HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49152 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49152 - "GET /api/events HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49187 - "GET /api/products?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49187 - "GET /api/products?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49187 - "GET /api/products/5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49191 - "GET /api/products/5/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49191 - "GET /api/products/5/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49187 - "GET /api/products/5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49187 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49187 - "GET /api/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49191 - "GET /api/events HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49187 - "GET /api/events HTTP/1.1" 200 OK

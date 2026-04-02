@@ -2,3 +2,7 @@ fastapi
 uvicorn
 sqlalchemy
 pydantic
+aiofiles
+pytest
+pytest-asyncio
+httpx

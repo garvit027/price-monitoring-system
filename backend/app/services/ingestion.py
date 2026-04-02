@@ -8,11 +8,11 @@ from app.services.normalizer import normalize
 from app.services.notification import send_notification
 from app.services.retry import retry
 
-def ingest_products(db: Session):
+async def ingest_products(db: Session, background_tasks=None):
     inserted = 0
     updated = 0
 
-    for raw_data, filename in load_products():
+    async for raw_data, filename in load_products():
         parser, source = get_parser(filename)
 
         if not parser:
@@ -27,7 +27,17 @@ def ingest_products(db: Session):
         ).first()
 
         if not existing:
-            db.add(Product(**product_data))
+            product = Product(**product_data)
+            db.add(product)
+            db.commit() # commit earlier for ID
+            db.refresh(product)
+            
+            # Save history for new product too
+            history = PriceHistory(
+                product_id=product.id,
+                price=product.price
+            )
+            db.add(history)
             inserted += 1
 
         else:
@@ -37,8 +47,7 @@ def ingest_products(db: Session):
                 # 🧾 Save history
                 history = PriceHistory(
                     product_id=existing.id,
-                    old_price=existing.price,
-                    new_price=product_data["price"]
+                    price=product_data["price"]
                 )
                 db.add(history)
 
@@ -46,12 +55,16 @@ def ingest_products(db: Session):
                 message = f"{existing.name} price changed from {existing.price} → {product_data['price']}"
                 event = Event(
                     type="PRICE_CHANGE",
-                    message=message
+                    message=message,
+                    product_id=existing.id
                 )
                 db.add(event)
 
-                # 🔔 Notification with retry
-                retry(lambda: send_notification(message))
+                # 🔔 Notification (Non-blocking)
+                if background_tasks:
+                    background_tasks.add_task(send_notification, message)
+                else:
+                    await send_notification(message)
 
                 # update price
                 existing.price = product_data["price"]

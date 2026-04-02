@@ -1,20 +1,29 @@
 import os
 import json
+import asyncio
+import aiofiles
 
-DATASET_PATH = "backend/dataset"
+DATASET_PATH = "dataset/sample_products"
 
-def load_products():
-    for filename in os.listdir(DATASET_PATH):
-        if not filename.endswith(".json"):
-            continue
+async def fetch_file(file_path):
+    # Simulate network call delay
+    await asyncio.sleep(0.1)
+    async with aiofiles.open(file_path, "r") as f:
+        content = await f.read()
+        return json.loads(content)
 
-        file_path = os.path.join(DATASET_PATH, filename)
+async def load_products():
+    from app.services.retry import retry
+    
+    for root, _, files in os.walk(DATASET_PATH):
+        for filename in files:
+            if not filename.endswith(".json"):
+                continue
 
-        try:
-            with open(file_path, "r") as f:
-                data = json.load(f)
+            file_path = os.path.join(root, filename)
 
-            yield data, filename
-
-        except Exception as e:
-            print(f"Error reading {filename}: {e}")
+            try:
+                data = await retry(fetch_file, file_path)
+                yield data, filename
+            except Exception as e:
+                print(f"Error reading {filename}: {e}")
