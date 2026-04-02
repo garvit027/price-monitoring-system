@@ -15,7 +15,7 @@ def get_db():
     try:
         yield db
     finally:
-        db.close()
+        db.close() 
 
 
 # 🔄 REFRESH DATA (UPDATED)
@@ -107,3 +107,9 @@ def analytics(db: Session = Depends(get_db)):
         "total_products": total,
         "average_price": round(avg_price, 2)
     }
+from app.models.event import Event
+
+@router.get("/events")
+def get_events(db: Session = Depends(get_db)):
+    events = db.query(Event).all()
+    return events
