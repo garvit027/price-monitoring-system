@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.models.product import Product
+from app.models.price_history import PriceHistory
 from app.schemas.product import ProductResponse
 from app.services.ingestion import ingest_products
 
@@ -17,11 +18,11 @@ def get_db():
         db.close()
 
 
-# 🔄 REFRESH DATA
+# 🔄 REFRESH DATA (UPDATED)
 @router.post("/refresh")
 def refresh(db: Session = Depends(get_db)):
-    count = ingest_products(db)
-    return {"inserted": count}
+    result = ingest_products(db)
+    return result
 
 
 # 🔥 GET PRODUCTS WITH FILTER + PAGINATION
@@ -72,6 +73,19 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Product not found")
 
     return product
+
+
+# 📈 PRICE HISTORY ENDPOINT (NEW 🔥)
+@router.get("/products/{product_id}/history")
+def get_price_history(product_id: int, db: Session = Depends(get_db)):
+    history = db.query(PriceHistory).filter(
+        PriceHistory.product_id == product_id
+    ).all()
+
+    if not history:
+        return {"message": "No price history found"}
+
+    return history
 
 
 # 📊 BASIC ANALYTICS
