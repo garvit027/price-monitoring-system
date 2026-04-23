@@ -1,4 +1,4 @@
-# 💎 EntPrice: High-Performance Product Price Monitoring System
+# 💎 Price Monitoring System: High-Performance Product Price Monitoring System
 
 A production-grade, real-time price tracking and anomaly detection platform built with **FastAPI**, **React**, and **SQLite**. Optimized for high-frequency time-series data with neon/dark aesthetic controls.
 
@@ -101,4 +101,4 @@ The system uses a **Strategy Pattern** for marketplace parsing:
 
 ---
 
-Built for **Entrupy Engineering** | Intern Assignment Submision
+

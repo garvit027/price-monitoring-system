@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class ProductResponse(BaseModel):
     id: int
@@ -8,8 +9,8 @@ class ProductResponse(BaseModel):
     source: str
     external_id: str
     price: float
-    image: str | None = None
-    url: str | None = None
+    image: Optional[str] = None
+    url: Optional[str] = None
 
     class Config:
         from_attributes = True

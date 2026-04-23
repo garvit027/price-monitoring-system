@@ -4,7 +4,7 @@ from app.db.session import SessionLocal
 from app.models.product import Product
 from app.models.price_history import PriceHistory
 from app.schemas.product import ProductResponse
-from app.services.ingestion import ingest_products
+from app.services.ingestion import ingest_products, sync_real_time_data
 
 router = APIRouter()
 
@@ -18,27 +18,27 @@ def get_db():
         db.close() 
 
 
-# 🔄 REFRESH DATA (RESILIENT)
+# 🔄 REFRESH DATA (REAL-TIME 🔥)
 @router.post("/refresh")
 async def refresh(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    # We execute sync in the foreground but we should allow it to take time
-    # Actually, the requirement says "Trigger a data refresh". 
-    # Let's perform it but optimize the notification overhead.
-    result = await ingest_products(db, background_tasks=background_tasks)
+    # Perform a full real-time sync from actual websites
+    result = await sync_real_time_data(db, background_tasks=background_tasks)
     return result
 
+
+from typing import Optional
 
 # 🔥 GET PRODUCTS WITH FILTER + PAGINATION
 @router.get("/products", response_model=list[ProductResponse])
 def get_products(
     db: Session = Depends(get_db),
 
-    category: str | None = None,
-    source: str | None = None,
-    brand: str | None = None,
+    category: Optional[str] = None,
+    source: Optional[str] = None,
+    brand: Optional[str] = None,
 
-    min_price: float | None = None,
-    max_price: float | None = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
 
     skip: int = 0,
     limit: int = 20

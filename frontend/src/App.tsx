@@ -61,29 +61,14 @@ function Dashboard({ addToast }: any) {
     fetchData();
   }, []);
 
-  const handleRefresh = async () => {
-    setLoading(true);
-    console.log('Initiating dataset sync...');
-    try {
-      const res = await axios.post(`${API_URL}/refresh`);
-      console.log('Sync complete!', res.data);
-      addToast(`Sync successful! Inserted: ${res.data.inserted}`);
-      fetchData();
-    } catch (e: any) {
-      console.error('Sync failed with error:', e);
-      addToast(`Sync failed: ${e.message}`, 'error');
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="animate-fade">
       <div className="page-header">
         <h1 className="page-title">Datacenter Control</h1>
-        <button onClick={handleRefresh} className="btn-primary">
-          <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
-          Sync Datastreams
-        </button>
+        <div style={{color: 'var(--text-muted)', fontSize: '14px'}}>
+          <Activity size={14} className="animate-pulse" style={{marginRight: 8, color: 'var(--neon-cyan)'}} />
+          Autonomous Sync Active
+        </div>
       </div>
 
       <div className="stats-grid">
@@ -360,7 +345,7 @@ export default function App() {
         <aside className="sidebar">
           <div className="sidebar-header">
             <h1 className="logo-text">
-              <Activity size={28} /> ENTPrice
+              <Activity size={28} /> PriceMonitor
             </h1>
           </div>
           <nav className="nav-links">
