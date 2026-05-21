@@ -5,7 +5,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { RefreshCw, Package, Activity, DollarSign, ExternalLink, Bell, AlertCircle, CheckCircle, LogOut, Plus, User, Mail, Calendar, Shield, Key, TrendingUp } from 'lucide-react';
 import './style.css';
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL = 'https://price-monitoring-system.vercel.app/';
 
 // --- Axios Interceptor ---
 axios.interceptors.request.use(config => {
@@ -17,7 +17,7 @@ axios.interceptors.request.use(config => {
 });
 
 // --- Toast System ---
-function Toast({ message, type, onClose }: { message: string, type: 'success'|'error', onClose: () => void }) {
+function Toast({ message, type, onClose }: { message: string, type: 'success' | 'error', onClose: () => void }) {
   useEffect(() => {
     const timer = setTimeout(() => onClose(), 4000);
     return () => clearTimeout(timer);
@@ -33,7 +33,7 @@ function Toast({ message, type, onClose }: { message: string, type: 'success'|'e
 
 function useToast() {
   const [toasts, setToasts] = useState<any[]>([]);
-  const addToast = (msg: string, type: 'success'|'error' = 'success') => {
+  const addToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToasts(prev => [...prev, { id: Date.now(), msg, type }]);
   };
   const removeToast = (id: number) => {
@@ -78,30 +78,30 @@ function AuthPage({ addToast, onLogin }: any) {
           {isLogin ? 'SYSTEM ACCESS' : 'INITIALIZE AGENT'}
         </h2>
         <form onSubmit={handleSubmit} className="auth-form">
-          <input 
-            type="email" 
-            placeholder="Identity Matrix (Email)" 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            required 
+          <input
+            type="email"
+            placeholder="Identity Matrix (Email)"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
             className="auth-input"
           />
           {!isLogin && (
-            <input 
-              type="text" 
-              placeholder="Alias (Username)" 
-              value={username} 
-              onChange={(e) => setUsername(e.target.value)} 
-              required 
+            <input
+              type="text"
+              placeholder="Alias (Username)"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
               className="auth-input"
             />
           )}
-          <input 
-            type="password" 
-            placeholder="Security Key (Password)" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            required 
+          <input
+            type="password"
+            placeholder="Security Key (Password)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
             className="auth-input"
           />
           <button type="submit" className="btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 16 }}>
@@ -110,9 +110,9 @@ function AuthPage({ addToast, onLogin }: any) {
         </form>
         <p style={{ textAlign: 'center', marginTop: 24, color: 'var(--text-muted)' }}>
           {isLogin ? "No access signature?" : "Already registered?"}
-          <button 
-            type="button" 
-            onClick={() => setIsLogin(!isLogin)} 
+          <button
+            type="button"
+            onClick={() => setIsLogin(!isLogin)}
             style={{ background: 'none', border: 'none', color: 'var(--accent-secondary)', marginLeft: 8, cursor: 'pointer', textDecoration: 'underline' }}
           >
             {isLogin ? "Initialize here" : "Authenticate here"}
@@ -152,8 +152,8 @@ function Dashboard({ addToast }: any) {
     <div className="animate-fade">
       <div className="page-header">
         <h1 className="page-title">Datacenter Control</h1>
-        <div style={{color: 'var(--text-muted)', fontSize: '14px'}}>
-          <Activity size={14} className="animate-pulse" style={{marginRight: 8, color: 'var(--accent-primary)'}} />
+        <div style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
+          <Activity size={14} className="animate-pulse" style={{ marginRight: 8, color: 'var(--accent-primary)' }} />
           Autonomous Sync Active
         </div>
       </div>
@@ -168,7 +168,7 @@ function Dashboard({ addToast }: any) {
             <Package size={28} />
           </div>
         </div>
-        
+
         <div className="stat-card">
           <div>
             <p className="stat-label">Market Baseline</p>
@@ -194,10 +194,10 @@ function Dashboard({ addToast }: any) {
         <div className="notifications-panel">
           <h2 className="section-title"><Package className="text-accent-primary" /> Category Averages</h2>
           <div className="notification-list">
-            {Object.entries(stats.by_category || {}).length === 0 ? <span style={{color: 'var(--text-muted)'}}>No aggregate data</span> : Object.entries(stats.by_category).map(([cat, avg]: any) => (
-              <div key={cat} className="notification-item" style={{display: 'flex', justifyContent: 'space-between', borderLeftColor: 'var(--accent-primary)'}}>
+            {Object.entries(stats.by_category || {}).length === 0 ? <span style={{ color: 'var(--text-muted)' }}>No aggregate data</span> : Object.entries(stats.by_category).map(([cat, avg]: any) => (
+              <div key={cat} className="notification-item" style={{ display: 'flex', justifyContent: 'space-between', borderLeftColor: 'var(--accent-primary)' }}>
                 <span>{cat}</span>
-                <span style={{color: 'var(--accent-primary)', fontWeight: 'bold'}}>₹{avg}</span>
+                <span style={{ color: 'var(--accent-primary)', fontWeight: 'bold' }}>₹{avg}</span>
               </div>
             ))}
           </div>
@@ -206,10 +206,10 @@ function Dashboard({ addToast }: any) {
         <div className="notifications-panel">
           <h2 className="section-title"><Activity className="text-accent-primary" /> Purchase / Track Activity</h2>
           <div className="notification-list">
-            {Object.entries(stats.purchases_by_source || {}).length === 0 ? <span style={{color: 'var(--text-muted)'}}>No mass volume data</span> : Object.entries(stats.purchases_by_source).map(([src, count]: any) => (
-              <div key={src} className="notification-item" style={{display: 'flex', justifyContent: 'space-between', borderLeftColor: 'var(--neon-purple)'}}>
+            {Object.entries(stats.purchases_by_source || {}).length === 0 ? <span style={{ color: 'var(--text-muted)' }}>No mass volume data</span> : Object.entries(stats.purchases_by_source).map(([src, count]: any) => (
+              <div key={src} className="notification-item" style={{ display: 'flex', justifyContent: 'space-between', borderLeftColor: 'var(--neon-purple)' }}>
                 <span>{src}</span>
-                <span style={{color: 'var(--neon-purple)', fontWeight: 'bold'}}>{count} Interactions</span>
+                <span style={{ color: 'var(--neon-purple)', fontWeight: 'bold' }}>{count} Interactions</span>
               </div>
             ))}
           </div>
@@ -220,19 +220,19 @@ function Dashboard({ addToast }: any) {
         <h2 className="section-title"><Bell className="text-accent-primary" /> System Event Log</h2>
         <div className="notification-list">
           {events.length === 0 ? (
-            <p style={{color: "var(--text-muted)", fontStyle: 'italic'}}>No network anomalies detected.</p>
+            <p style={{ color: "var(--text-muted)", fontStyle: 'italic' }}>No network anomalies detected.</p>
           ) : (
             events.map((e: any) => (
               e.product_id ? (
-                <Link to={`/products/${e.product_id}`} key={e.id} style={{textDecoration: 'none'}}>
-                  <div className="notification-item" style={{cursor: 'pointer'}}>
-                    <span style={{color: 'var(--accent-secondary)', marginRight: 10, fontWeight: 'bold'}}>&gt;_</span>
+                <Link to={`/products/${e.product_id}`} key={e.id} style={{ textDecoration: 'none' }}>
+                  <div className="notification-item" style={{ cursor: 'pointer' }}>
+                    <span style={{ color: 'var(--accent-secondary)', marginRight: 10, fontWeight: 'bold' }}>&gt;_</span>
                     {e.message}
                   </div>
                 </Link>
               ) : (
                 <div key={e.id} className="notification-item">
-                  <span style={{color: 'var(--accent-secondary)', marginRight: 10, fontWeight: 'bold'}}>&gt;_</span>
+                  <span style={{ color: 'var(--accent-secondary)', marginRight: 10, fontWeight: 'bold' }}>&gt;_</span>
                   {e.message}
                 </div>
               )
@@ -291,10 +291,10 @@ function ProductList({ addToast }: any) {
     <div className="animate-fade">
       <div className="page-header" style={{ marginBottom: 24, display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'space-between', alignItems: 'center' }}>
         <h1 className="page-title">Global Directory</h1>
-        
-        <input 
-          type="text" 
-          placeholder="Query network assets..." 
+
+        <input
+          type="text"
+          placeholder="Query network assets..."
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           className="search-input"
@@ -304,9 +304,9 @@ function ProductList({ addToast }: any) {
       <div className="notifications-panel" style={{ marginBottom: 48 }}>
         <h2 className="section-title" style={{ marginBottom: 16 }}><Activity className="text-accent-primary" /> New Asset Tracking</h2>
         <form onSubmit={handleTrackUrl} style={{ display: 'flex', gap: 16 }}>
-          <input 
-            type="url" 
-            placeholder="Enter product URL from any site..." 
+          <input
+            type="url"
+            placeholder="Enter product URL from any site..."
             value={trackUrl}
             onChange={e => setTrackUrl(e.target.value)}
             className="search-input"
@@ -319,10 +319,10 @@ function ProductList({ addToast }: any) {
           </button>
         </form>
       </div>
-      
+
       {/* Marketplace Filters */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 48, overflowX: 'auto', paddingBottom: 8 }}>
-        <button 
+        <button
           onClick={() => setSelectedSource(null)}
           className="btn-black"
           style={{ background: selectedSource === null ? 'var(--accent-primary)' : undefined, color: selectedSource === null ? '#000' : undefined, borderColor: selectedSource === null ? 'var(--accent-primary)' : undefined }}
@@ -330,7 +330,7 @@ function ProductList({ addToast }: any) {
           All Marketplaces
         </button>
         {sources.map(src => (
-          <button 
+          <button
             key={src}
             onClick={() => setSelectedSource(src)}
             className="btn-black"
@@ -398,7 +398,7 @@ function ProductDetail({ addToast }: any) {
       .catch((e: any) => console.error('Tracking failure:', e));
   }, [id, addToast]);
 
-  if (!product) return <div className="animate-fade" style={{fontSize: 24, textAlign: 'center', marginTop: 100, color: 'var(--accent-primary)'}}>Decrypting asset signatures...</div>;
+  if (!product) return <div className="animate-fade" style={{ fontSize: 24, textAlign: 'center', marginTop: 100, color: 'var(--accent-primary)' }}>Decrypting asset signatures...</div>;
 
   return (
     <div className="detail-container animate-fade">
@@ -412,73 +412,73 @@ function ProductDetail({ addToast }: any) {
           <div className="detail-price-box">
             <span className="detail-price">₹{product.price}</span>
             {history.length > 0 && Math.max(...history.map(h => h.price)) > product.price && (
-              <span className="detail-old-price">₹{Math.max(...history.map(h => h.price)).toFixed(2)}</span> 
+              <span className="detail-old-price">₹{Math.max(...history.map(h => h.price)).toFixed(2)}</span>
             )}
           </div>
           <div>
-             <a href={product.url} target="_blank" rel="noopener noreferrer" className="btn-black">
-               Access Origin Matrix <ExternalLink size={20} />
-             </a>
+            <a href={product.url} target="_blank" rel="noopener noreferrer" className="btn-black">
+              Access Origin Matrix <ExternalLink size={20} />
+            </a>
           </div>
         </div>
       </div>
-      
+
       <div>
         <h2 className="section-title">
-          <Activity size={24} style={{color: 'var(--accent-secondary)'}} /> Trajectory Analytics
+          <Activity size={24} style={{ color: 'var(--accent-secondary)' }} /> Trajectory Analytics
         </h2>
-        
+
         {history.length > 0 ? (
           <div className="chart-container">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={history} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="var(--accent-primary)" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="var(--accent-primary)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(99, 102, 241, 0.05)" />
-                <XAxis 
-                  dataKey="timestamp" 
+                <XAxis
+                  dataKey="timestamp"
                   type="number"
                   domain={['auto', 'auto']}
                   tickFormatter={(unixTime) => new Date(unixTime).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{fill: '#8b8b99', fontSize: 12}} 
-                  dy={15} 
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#8b8b99', fontSize: 12 }}
+                  dy={15}
                 />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{fill: '#8b8b99', fontSize: 12}} 
-                  tickFormatter={(value) => `₹${value}`} 
-                  dx={-15} 
-                  domain={['dataMin - (dataMin * 0.05)', 'dataMax + (dataMax * 0.05)']} 
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#8b8b99', fontSize: 12 }}
+                  tickFormatter={(value) => `₹${value}`}
+                  dx={-15}
+                  domain={['dataMin - (dataMin * 0.05)', 'dataMax + (dataMax * 0.05)']}
                 />
-                <Tooltip 
-                  cursor={{stroke: 'rgba(99, 102, 241, 0.2)', strokeWidth: 2, strokeDasharray: '4 4'}} 
-                  contentStyle={{background: 'rgba(10, 10, 22, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid rgba(99, 102, 241, 0.3)', borderRadius: '12px', padding: '16px', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)', color: '#fff'}}
+                <Tooltip
+                  cursor={{ stroke: 'rgba(99, 102, 241, 0.2)', strokeWidth: 2, strokeDasharray: '4 4' }}
+                  contentStyle={{ background: 'rgba(10, 10, 22, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid rgba(99, 102, 241, 0.3)', borderRadius: '12px', padding: '16px', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)', color: '#fff' }}
                   labelFormatter={(unixTime) => new Date(unixTime).toLocaleString([], { weekday: 'short', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   itemStyle={{ color: 'var(--accent-primary)', fontWeight: 'bold' }}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="price" 
-                  stroke="var(--accent-primary)" 
-                  strokeWidth={4} 
-                  fillOpacity={1} 
-                  fill="url(#colorPrice)" 
-                  dot={{r: 5, fill: '#0a0a16', strokeWidth: 2, stroke: 'var(--accent-primary)'}} 
-                  activeDot={{r: 8, fill: 'var(--accent-secondary)', stroke: '#fff', strokeWidth: 3, style: { filter: 'drop-shadow(0px 0px 8px rgba(255,0,85,0.8))' } }} 
-                  animationDuration={1500} 
+                <Area
+                  type="monotone"
+                  dataKey="price"
+                  stroke="var(--accent-primary)"
+                  strokeWidth={4}
+                  fillOpacity={1}
+                  fill="url(#colorPrice)"
+                  dot={{ r: 5, fill: '#0a0a16', strokeWidth: 2, stroke: 'var(--accent-primary)' }}
+                  activeDot={{ r: 8, fill: 'var(--accent-secondary)', stroke: '#fff', strokeWidth: 3, style: { filter: 'drop-shadow(0px 0px 8px rgba(255,0,85,0.8))' } }}
+                  animationDuration={1500}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         ) : (
-          <p style={{color: 'var(--text-muted)', fontStyle: 'italic'}}>Awaiting sufficient temporal data to compile chart.</p>
+          <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Awaiting sufficient temporal data to compile chart.</p>
         )}
       </div>
     </div>
