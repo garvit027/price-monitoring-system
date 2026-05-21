@@ -5,7 +5,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { RefreshCw, Package, Activity, DollarSign, ExternalLink, Bell, AlertCircle, CheckCircle, LogOut, Plus, User, Mail, Calendar, Shield, Key, TrendingUp } from 'lucide-react';
 import './style.css';
 
-const API_URL = 'https://price-monitoring-system.vercel.app/';
+const API_URL = 'https://price-monitoring-system.onrender.com/api';
 
 // --- Axios Interceptor ---
 axios.interceptors.request.use(config => {
