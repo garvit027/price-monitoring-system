@@ -4,7 +4,7 @@ from app.models.price_history import PriceHistory
 from app.models.event import Event
 from app.services.loader import load_products
 from app.services.parsers import get_parser
-from app.services.normalizer import normalize
+from app.services.normalizer import clean_product_data
 from app.services.notification import send_notification
 from app.services.retry import retry
 from app.services.scraper import fetch_page_content
@@ -97,18 +97,12 @@ async def auto_discover_and_grow(db: Session, background_tasks=None):
             parsed_data = parser(html)
             if not isinstance(parsed_data, dict) or "price" not in parsed_data: continue
             
-            # We need to fill missing fields for new product
-            product_data = {
-                "name": parsed_data.get("name", "Unknown Product"),
-                "brand": parsed_data.get("brand", "Generic"),
-                "category": parsed_data.get("category", "General"),
-                "source": src_name,
-                "external_id": str(parsed_data.get("external_id", hash(url))),
-                "price": parsed_data["price"],
-                "image": parsed_data.get("image"),
-                "url": url
-            }
+            product_data = clean_product_data(parsed_data, src_name, url)
             
+            # CRITICAL: Reject broken items (e.g. from Captchas)
+            if product_data["price"] <= 0 or not product_data["image"] or product_data["name"] == "Unknown Product":
+                continue
+                
             product = Product(**product_data)
             db.add(product)
             db.commit()
@@ -120,10 +114,10 @@ async def auto_discover_and_grow(db: Session, background_tasks=None):
             new_inserted += 1
             
             # Stop if we hit a reasonable batch size to avoid long blocking
-            if new_inserted >= 30: break
+            if new_inserted >= 300: break
     
     # 3. Enforce Limit
-    evicted = await enforce_limit(db, 200)
+    evicted = await enforce_limit(db, 2000)
     
     return {
         "synced": sync_result["updated"],

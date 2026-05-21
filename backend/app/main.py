@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.db.base import Base
 from app.db.session import engine
 from app.routes import products
+from app.routes import auth as auth_router
+import app.models  # ensure all models are imported for table creation
 import asyncio
 import time
 from collections import defaultdict
@@ -28,18 +30,15 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def add_auth_and_tracking(request: Request, call_next):
-    # 🔓 Assignment Auth (Always Allow)
+async def add_tracking(request: Request, call_next):
     client_ip = request.client.host
     consumer_id = request.headers.get("X-API-Key", client_ip)
-    
-    # Track usage
     usage_stats[consumer_id] += 1
-    
+
     start_time = time.time()
     response = await call_next(request)
     process_time = time.time() - start_time
-    
+
     response.headers["X-Process-Time"] = str(process_time)
     response.headers["X-Usage-Count"] = str(usage_stats[consumer_id])
     return response
@@ -47,41 +46,45 @@ async def add_auth_and_tracking(request: Request, call_next):
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    # Graceful handling of bad input or unexpected errors
     return JSONResponse(
         status_code=500,
         content={"message": "An unexpected error occurred.", "details": str(exc)},
     )
 
 
+# Mount routers
 app.include_router(products.router, prefix="/api")
+app.include_router(auth_router.router, prefix="/api")
+
+
+@app.get("/api/health")
+def health():
+    return {"status": "ok"}
+
 
 async def periodic_worker():
     """
-    Background worker that runs periodically to:
+    Background worker that runs every 5 minutes to:
     1. Discover new products from the web.
     2. Sync prices for existing products.
-    3. Remove old products to maintain the limit (~200).
+    3. Remove old products to maintain the limit.
     """
     while True:
         db = SessionLocal()
         try:
             print("🚀 Starting background discovery and sync loop...")
-            # Use the automated growth engine
             result = await auto_discover_and_grow(db)
             print(f"✅ Periodic sync complete: {result}")
         except Exception as e:
             print(f"❌ Periodic sync failed: {e}")
         finally:
             db.close()
-            
-        # Run every 30 minutes for faster growth initially, then we can slow down
-        # For evaluation purposes, we'll keep it frequent.
-        await asyncio.sleep(1800)
+
+        # Run every 5 minutes
+        await asyncio.sleep(300)
+
 
 @app.on_event("startup")
 async def startup_event():
-    # Start the worker in the background
     asyncio.create_task(periodic_worker())
-    
-    print("Background worker initialized. Monitoring price changes and discovering new assets...")
+    print("✅ Background worker initialized. Monitoring price changes...")

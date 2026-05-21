@@ -1,4 +1,4 @@
-import httpx
+from curl_cffi.requests import AsyncSession
 from bs4 import BeautifulSoup
 import logging
 
@@ -12,19 +12,16 @@ HEADERS = {
 
 async def fetch_page_content(url: str) -> str:
     """
-    Fetches the HTML content of a given URL.
+    Fetches the HTML content of a given URL using curl_cffi to bypass bot protections.
     """
-    async with httpx.AsyncClient(headers=HEADERS, follow_redirects=True, timeout=15.0) as client:
-        try:
-            response = await client.get(url)
+    try:
+        async with AsyncSession(impersonate="chrome120", timeout=20.0) as client:
+            response = await client.get(url, headers=HEADERS)
             response.raise_for_status()
             return response.text
-        except httpx.HTTPStatusError as e:
-            logger.error(f"HTTP error occurred: {e.response.status_code} for URL: {url}")
-            return ""
-        except Exception as e:
-            logger.error(f"An error occurred while fetching {url}: {str(e)}")
-            return ""
+    except Exception as e:
+        logger.error(f"An error occurred while fetching {url}: {str(e)}")
+        return ""
 
 def get_soup(html: str) -> BeautifulSoup:
     """
