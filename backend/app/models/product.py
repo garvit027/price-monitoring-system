@@ -14,5 +14,6 @@ class Product(Base):
     price = Column(Float, index=True)
     image = Column(String)
     url = Column(String)
+    alert_price = Column(Float, nullable=True, index=True)
 
     price_history = relationship("PriceHistory", back_populates="product", cascade="all, delete-orphan")

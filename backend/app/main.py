@@ -14,6 +14,29 @@ from app.db.session import SessionLocal
 
 Base.metadata.create_all(bind=engine)
 
+from sqlalchemy import text
+
+# Helper to check and dynamically create missing columns
+def check_and_add_columns():
+    db = SessionLocal()
+    try:
+        # Check if alert_price exists
+        db.execute(text("SELECT alert_price FROM products LIMIT 1"))
+    except Exception:
+        db.rollback()
+        try:
+            print("Adding alert_price column to products table...")
+            db.execute(text("ALTER TABLE products ADD COLUMN alert_price FLOAT"))
+            db.commit()
+            print("Successfully added alert_price column.")
+        except Exception as e:
+            print(f"Error adding alert_price column: {e}")
+            db.rollback()
+    finally:
+        db.close()
+
+check_and_add_columns()
+
 app = FastAPI(title="Price Monitoring System")
 
 # Simple usage tracking (in-memory)

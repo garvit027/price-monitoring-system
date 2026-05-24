@@ -5,7 +5,16 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { RefreshCw, Package, Activity, DollarSign, ExternalLink, Bell, AlertCircle, CheckCircle, LogOut, Plus, User, Mail, Calendar, Shield, Key, TrendingUp } from 'lucide-react';
 import './style.css';
 
-const API_URL = 'https://price-monitoring-system.onrender.com/api';
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8000/api'
+  : 'https://price-monitoring-system.onrender.com/api';
+
+export const getCurrencySymbol = (source: string) => {
+  if (!source) return '$';
+  const rsSources = ['Flipkart', 'Myntra', 'Amazon India'];
+  if (rsSources.includes(source)) return '₹';
+  return '$';
+};
 
 // --- Axios Interceptor ---
 axios.interceptors.request.use(config => {
@@ -126,7 +135,6 @@ function AuthPage({ addToast, onLogin }: any) {
 // --- Dashboard Component ---
 function Dashboard({ addToast }: any) {
   const [stats, setStats] = useState<any>({ total_products: 0, average_price: 0, by_source: {}, by_category: {}, purchases_by_source: {} });
-  const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<any[]>([]);
 
   const fetchData = async () => {
@@ -139,22 +147,24 @@ function Dashboard({ addToast }: any) {
       if (e.response?.status !== 401) {
         addToast(`Error loading data: ${e.message}`, 'error');
       }
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchData();
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="animate-fade">
-      <div className="page-header">
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
         <h1 className="page-title">Datacenter Control</h1>
-        <div style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
-          <Activity size={14} className="animate-pulse" style={{ marginRight: 8, color: 'var(--accent-primary)' }} />
-          Autonomous Sync Active
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: '14px', display: 'flex', alignItems: 'center' }}>
+            <Activity size={14} className="animate-pulse" style={{ marginRight: 8, color: 'var(--accent-primary)' }} />
+            Autonomous Sync Active
+          </div>
         </div>
       </div>
 
@@ -172,7 +182,7 @@ function Dashboard({ addToast }: any) {
         <div className="stat-card">
           <div>
             <p className="stat-label">Market Baseline</p>
-            <p className="stat-value">₹{stats.average_price}</p>
+            <p className="stat-value">{stats.average_price}</p>
           </div>
           <div className="stat-icon pink">
             <DollarSign size={28} />
@@ -182,7 +192,7 @@ function Dashboard({ addToast }: any) {
         <div className="stat-card">
           <div>
             <p className="stat-label">Active Anomalies</p>
-            <p className="stat-value">{events.length}</p>
+            <p className="stat-value">{stats.active_anomalies || 0}</p>
           </div>
           <div className="stat-icon purple">
             <Bell size={28} />
@@ -190,14 +200,14 @@ function Dashboard({ addToast }: any) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '32px', marginBottom: '48px' }}>
+      <div className="dashboard-content-grid">
         <div className="notifications-panel">
           <h2 className="section-title"><Package className="text-accent-primary" /> Category Averages</h2>
           <div className="notification-list">
             {Object.entries(stats.by_category || {}).length === 0 ? <span style={{ color: 'var(--text-muted)' }}>No aggregate data</span> : Object.entries(stats.by_category).map(([cat, avg]: any) => (
               <div key={cat} className="notification-item" style={{ display: 'flex', justifyContent: 'space-between', borderLeftColor: 'var(--accent-primary)' }}>
                 <span>{cat}</span>
-                <span style={{ color: 'var(--accent-primary)', fontWeight: 'bold' }}>₹{avg}</span>
+                <span style={{ color: 'var(--accent-primary)', fontWeight: 'bold' }}>{avg}</span>
               </div>
             ))}
           </div>
@@ -254,7 +264,7 @@ function ProductList({ addToast }: any) {
   const navigate = useNavigate();
 
   const fetchProducts = () => {
-    axios.get(`${API_URL}/products?limit=100`)
+    axios.get(`${API_URL}/products?limit=1000`)
       .then(res => setProducts(res.data))
       .catch((e: any) => addToast(`Failed fetching directory: ${e.message}`, 'error'));
   };
@@ -354,7 +364,7 @@ function ProductList({ addToast }: any) {
                   <span className="product-source">{p.source}</span>
                 </div>
                 <h3 className="product-name" title={p.name}>{p.name}</h3>
-                <p className="product-price">₹{p.price}</p>
+                <p className="product-price">{getCurrencySymbol(p.source)}{p.price}</p>
               </div>
             </div>
           </Link>
@@ -368,11 +378,19 @@ function ProductList({ addToast }: any) {
 function ProductDetail({ addToast }: any) {
   const [product, setProduct] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
+  const [alertPriceInput, setAlertPriceInput] = useState("");
+  const [updatingAlert, setUpdatingAlert] = useState(false);
   const id = window.location.pathname.split('/').pop();
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios.get(`${API_URL}/products/${id}`)
-      .then(res => setProduct(res.data))
+      .then(res => {
+        setProduct(res.data);
+        if (res.data.alert_price) {
+          setAlertPriceInput(res.data.alert_price.toString());
+        }
+      })
       .catch((e: any) => addToast(`Asset retrieval issue: ${e.message}`, 'error'));
 
     axios.get(`${API_URL}/products/${id}/history`)
@@ -398,28 +416,139 @@ function ProductDetail({ addToast }: any) {
       .catch((e: any) => console.error('Tracking failure:', e));
   }, [id, addToast]);
 
+  const handleDelete = async () => {
+    if (window.confirm("Are you sure you want to stop tracking this product and delete its history?")) {
+      try {
+        await axios.delete(`${API_URL}/products/${id}`);
+        addToast("Product successfully removed from monitoring.", "success");
+        navigate("/products");
+      } catch (e: any) {
+        addToast(`Failed to stop tracking: ${e.message}`, "error");
+      }
+    }
+  };
+
+  const handleSetAlert = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUpdatingAlert(true);
+    try {
+      const val = alertPriceInput ? parseFloat(alertPriceInput) : null;
+      await axios.post(`${API_URL}/products/${id}/alert`, { alert_price: val });
+      addToast(val ? `Alert set below ${getCurrencySymbol(product?.source)}${val}` : "Alert cleared", "success");
+      const res = await axios.get(`${API_URL}/products/${id}`);
+      setProduct(res.data);
+    } catch (e: any) {
+      addToast(`Failed to configure alert: ${e.message}`, "error");
+    } finally {
+      setUpdatingAlert(false);
+    }
+  };
+
+  const handleClearAlert = async () => {
+    setUpdatingAlert(true);
+    try {
+      await axios.post(`${API_URL}/products/${id}/alert`, { alert_price: null });
+      addToast("Alert cleared successfully", "success");
+      setAlertPriceInput("");
+      const res = await axios.get(`${API_URL}/products/${id}`);
+      setProduct(res.data);
+    } catch (e: any) {
+      addToast(`Failed to clear alert: ${e.message}`, "error");
+    } finally {
+      setUpdatingAlert(false);
+    }
+  };
+
   if (!product) return <div className="animate-fade" style={{ fontSize: 24, textAlign: 'center', marginTop: 100, color: 'var(--accent-primary)' }}>Decrypting asset signatures...</div>;
+
+  const lowestPrice = history.length > 0 ? Math.min(...history.map(h => h.price)) : product.price;
+  const highestPrice = history.length > 0 ? Math.max(...history.map(h => h.price)) : product.price;
+  const priceDropPercent = highestPrice > 0 ? ((highestPrice - product.price) / highestPrice * 100).toFixed(0) : "0";
 
   return (
     <div className="detail-container animate-fade">
-      <div className="detail-header">
+      <div className="detail-header" style={{ marginBottom: '32px' }}>
         <div className="detail-image-box">
           <img src={product.image || "https://placehold.co/400x400"} alt={product.name} className="detail-image" />
         </div>
         <div className="detail-info">
           <p className="detail-brand">{product.brand}</p>
           <h1 className="detail-title">{product.name}</h1>
-          <div className="detail-price-box">
-            <span className="detail-price">₹{product.price}</span>
+          <div className="detail-price-box" style={{ marginBottom: '24px' }}>
+            <span className="detail-price">{getCurrencySymbol(product.source)}{product.price}</span>
             {history.length > 0 && Math.max(...history.map(h => h.price)) > product.price && (
-              <span className="detail-old-price">₹{Math.max(...history.map(h => h.price)).toFixed(2)}</span>
+              <span className="detail-old-price">{getCurrencySymbol(product.source)}{Math.max(...history.map(h => h.price)).toFixed(2)}</span>
             )}
           </div>
-          <div>
-            <a href={product.url} target="_blank" rel="noopener noreferrer" className="btn-black">
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '24px' }}>
+            <a href={product.url} target="_blank" rel="noopener noreferrer" className="btn-black" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px' }}>
               Access Origin Matrix <ExternalLink size={20} />
             </a>
+            <button onClick={handleDelete} className="btn-primary" style={{ background: '#ff0055', borderColor: '#ff0055', color: '#fff', padding: '10px 20px' }}>
+              Stop Tracking
+            </button>
           </div>
+
+          {/* Price Alert Configuration Card */}
+          <div className="notifications-panel" style={{ background: 'rgba(10, 10, 22, 0.4)', border: '1px solid rgba(255, 0, 85, 0.15)', padding: '20px', borderRadius: '12px' }}>
+            <h3 className="section-title" style={{ fontSize: '18px', color: 'var(--accent-secondary)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <Bell size={18} style={{ color: 'var(--accent-secondary)' }} /> Configure Price Drop Alert
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '16px' }}>
+              Get flagged in the System Event Log when this item drops below your target price.
+            </p>
+            <form onSubmit={handleSetAlert} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontWeight: 'bold' }}>{getCurrencySymbol(product.source)}</span>
+                <input
+                  type="number"
+                  placeholder="Target price threshold..."
+                  value={alertPriceInput}
+                  onChange={e => setAlertPriceInput(e.target.value)}
+                  className="search-input"
+                  style={{ width: '100%', paddingLeft: '28px', boxSizing: 'border-box' }}
+                />
+              </div>
+              <button type="submit" className="btn-primary" disabled={updatingAlert}>
+                {updatingAlert ? 'SAVING...' : 'SET ALERT'}
+              </button>
+              {product.alert_price && (
+                <button type="button" onClick={handleClearAlert} className="btn-black" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
+                  CLEAR
+                </button>
+              )}
+            </form>
+            {product.alert_price && (
+              <p style={{ color: 'var(--accent-primary)', fontSize: '13px', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <CheckCircle size={14} color="var(--accent-primary)" /> Active Alert: Trigger when price drops below {getCurrencySymbol(product.source)}{product.alert_price}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Trajectory Metrics Grid */}
+      <div className="stats-grid" style={{ marginBottom: '32px' }}>
+        <div className="stat-card">
+          <div>
+            <p className="stat-label">Lowest Tracked Price</p>
+            <p className="stat-value">{getCurrencySymbol(product.source)}{lowestPrice}</p>
+          </div>
+          <div className="stat-icon"><DollarSign size={28} /></div>
+        </div>
+        <div className="stat-card">
+          <div>
+            <p className="stat-label">Highest Tracked Price</p>
+            <p className="stat-value">{getCurrencySymbol(product.source)}{highestPrice}</p>
+          </div>
+          <div className="stat-icon purple"><TrendingUp size={28} /></div>
+        </div>
+        <div className="stat-card">
+          <div>
+            <p className="stat-label">Discount From Peak</p>
+            <p className="stat-value">{priceDropPercent}%</p>
+          </div>
+          <div className="stat-icon pink"><Activity size={28} /></div>
         </div>
       </div>
 
@@ -453,7 +582,7 @@ function ProductDetail({ addToast }: any) {
                   axisLine={false}
                   tickLine={false}
                   tick={{ fill: '#8b8b99', fontSize: 12 }}
-                  tickFormatter={(value) => `₹${value}`}
+                  tickFormatter={(value) => `${getCurrencySymbol(product.source)}${value}`}
                   dx={-15}
                   domain={['dataMin - (dataMin * 0.05)', 'dataMax + (dataMax * 0.05)']}
                 />
@@ -569,7 +698,7 @@ function ProfileDashboard({ addToast }: any) {
         <div className="stat-card">
           <div>
             <p className="stat-label">Market Baseline</p>
-            <p className="stat-value">₹{stats.average_price ?? 0}</p>
+            <p className="stat-value">{stats.average_price ?? 0}</p>
           </div>
           <div className="stat-icon pink"><TrendingUp size={28} /></div>
         </div>

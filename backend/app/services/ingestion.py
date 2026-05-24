@@ -4,14 +4,20 @@ from app.models.price_history import PriceHistory
 from app.models.event import Event
 from app.services.loader import load_products
 from app.services.parsers import get_parser
-from app.services.normalizer import clean_product_data
+from app.services.normalizer import clean_product_data, is_valid_product
 from app.services.notification import send_notification
 from app.services.retry import retry
 from app.services.scraper import fetch_page_content
 from app.services.discovery import discover_all
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
+
+def get_currency_symbol(source: str) -> str:
+    if source in ["Flipkart", "Myntra", "Amazon India"]:
+        return "₹"
+    return "$"
 
 async def ingest_products(db: Session, background_tasks=None):
     # (Legacy/Sample file ingestion - keeping for compatibility)
@@ -23,7 +29,10 @@ async def ingest_products(db: Session, background_tasks=None):
         if not parser: continue
 
         parsed = parser(raw_data)
-        product_data = normalize(parsed, source, filename)
+        product_data = clean_product_data(parsed, source, filename)
+        
+        if not is_valid_product(product_data):
+            continue
 
         existing = db.query(Product).filter(
             Product.external_id == product_data["external_id"],
@@ -42,8 +51,17 @@ async def ingest_products(db: Session, background_tasks=None):
             if existing.price != product_data["price"]:
                 history = PriceHistory(product_id=existing.id, price=product_data["price"])
                 db.add(history)
-                message = f"{existing.name} price changed: {existing.price} → {product_data['price']}"
-                event = Event(type="PRICE_CHANGE", message=message, product_id=existing.id)
+                
+                # Check for Alert Threshold
+                if existing.alert_price is not None and product_data["price"] <= existing.alert_price:
+                    sym = get_currency_symbol(product_data["source"])
+                    message = f"🚨 ALERT TRIGGERED: {existing.name} dropped to {sym}{product_data['price']} (below threshold of {sym}{existing.alert_price})"
+                    event_type = "PRICE_ALERT"
+                else:
+                    message = f"{existing.name} price changed: {existing.price} → {product_data['price']}"
+                    event_type = "PRICE_CHANGE"
+
+                event = Event(type=event_type, message=message, product_id=existing.id)
                 db.add(event)
                 if background_tasks: background_tasks.add_task(send_notification, message)
                 existing.price = product_data["price"]
@@ -100,7 +118,7 @@ async def auto_discover_and_grow(db: Session, background_tasks=None):
             product_data = clean_product_data(parsed_data, src_name, url)
             
             # CRITICAL: Reject broken items (e.g. from Captchas)
-            if product_data["price"] <= 0 or not product_data["image"] or product_data["name"] == "Unknown Product":
+            if not is_valid_product(product_data):
                 continue
                 
             product = Product(**product_data)
@@ -117,7 +135,7 @@ async def auto_discover_and_grow(db: Session, background_tasks=None):
             if new_inserted >= 300: break
     
     # 3. Enforce Limit
-    evicted = await enforce_limit(db, 2000)
+    evicted = await enforce_limit(db, 800)
     
     return {
         "synced": sync_result["updated"],
@@ -146,8 +164,17 @@ async def sync_real_time_data(db: Session, background_tasks=None):
         if new_price and new_price != product.price:
             history = PriceHistory(product_id=product.id, price=new_price)
             db.add(history)
-            message = f"REAL-TIME UPDATE: {product.name} price changed: {product.price} → {new_price}"
-            event = Event(type="PRICE_CHANGE", message=message, product_id=product.id)
+            
+            # Check for Alert Threshold
+            if product.alert_price is not None and new_price <= product.alert_price:
+                sym = get_currency_symbol(product.source)
+                message = f"🚨 ALERT TRIGGERED: {product.name} dropped to {sym}{new_price} (below threshold of {sym}{product.alert_price})"
+                event_type = "PRICE_ALERT"
+            else:
+                message = f"REAL-TIME UPDATE: {product.name} price changed: {product.price} → {new_price}"
+                event_type = "PRICE_CHANGE"
+
+            event = Event(type=event_type, message=message, product_id=product.id)
             db.add(event)
             if background_tasks: background_tasks.add_task(send_notification, message)
             product.price = new_price

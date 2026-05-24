@@ -10,7 +10,6 @@ MARKETPLACES = {
     "Fashionphile": "https://www.fashionphile.com/shop",
     "Grailed": "https://www.grailed.com/shop",
     "1stdibs": "https://www.1stdibs.com/fashion/",
-    "Amazon": "https://www.amazon.com/s?k=electronics",
     "Flipkart": "https://www.flipkart.com/search?q=electronics",
     "Ebay": "https://www.ebay.com/sch/i.html?_nkw=electronics",
     "Myntra": "https://www.myntra.com/men-tshirts",

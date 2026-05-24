@@ -11,13 +11,19 @@ from app.schemas.product import ProductResponse
 from app.services.ingestion import ingest_products, sync_real_time_data
 from app.services.scraper import fetch_page_content
 from app.services.parsers import get_parser
-from app.services.normalizer import clean_product_data
+from app.services.normalizer import clean_product_data, is_valid_product
 from app.services.retry import retry
 from typing import Optional
 from pydantic import BaseModel
 import logging
 
 logger = logging.getLogger(__name__)
+
+def get_currency_symbol(source: str) -> str:
+    if source in ["Flipkart", "Myntra", "Amazon India"]:
+        return "₹"
+    return "$"
+
 router = APIRouter()
 
 
@@ -30,11 +36,7 @@ def get_db():
         db.close()
 
 
-# 🔄 REFRESH DATA (REAL-TIME 🔥)
-@router.post("/refresh")
-async def refresh(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    result = await sync_real_time_data(db, background_tasks=background_tasks)
-    return result
+
 
 
 # 🔥 GET PRODUCTS WITH FILTER + PAGINATION
@@ -62,7 +64,7 @@ def get_products(
     if max_price is not None:
         query = query.filter(Product.price <= max_price)
 
-    return query.offset(skip).limit(limit).all()
+    return query.order_by(Product.id.desc()).offset(skip).limit(limit).all()
 
 
 # 🔍 GET SINGLE PRODUCT
@@ -121,6 +123,9 @@ async def track_url(payload: TrackUrlRequest, db: Session = Depends(get_db), cur
 
     product_data = clean_product_data(parsed_data, source_name, url)
 
+    if not is_valid_product(product_data):
+        raise HTTPException(status_code=422, detail="Scraped data is invalid, looks like a bot-check page or missing information. Please try again.")
+
     product = Product(**product_data)
     db.add(product)
     db.commit()
@@ -131,7 +136,7 @@ async def track_url(payload: TrackUrlRequest, db: Session = Depends(get_db), cur
     db.add(history)
     db.commit()
 
-    logger.info(f"✅ Tracked new product: {product.name} from {source_name} @ ₹{product.price}")
+    logger.info(f"✅ Tracked new product: {product.name} from {source_name} @ {get_currency_symbol(source_name)}{product.price}")
 
     return {"status": "tracking_started", "product_id": product.id, "product": {
         "id": product.id, "name": product.name, "price": product.price,
@@ -150,6 +155,7 @@ def analytics(db: Session = Depends(get_db)):
             "by_source": {},
             "by_category": {},
             "purchases_by_source": {},
+            "active_anomalies": 0,
         }
 
     avg_price = db.query(func.avg(Product.price)).scalar() or 0
@@ -169,12 +175,16 @@ def analytics(db: Session = Depends(get_db)):
     )
     purchases_by_source = {row[0]: row[1] for row in purchases_by_source_raw}
 
+    # Count anomalies
+    anomalies_count = db.query(Event).filter(Event.type.in_(["PRICE_CHANGE", "PRICE_ALERT"])).count()
+
     return {
         "total_products": total,
         "average_price": round(avg_price, 2),
         "by_source": by_source,
         "by_category": by_category,
         "purchases_by_source": purchases_by_source,
+        "active_anomalies": anomalies_count,
     }
 
 
@@ -183,6 +193,33 @@ def analytics(db: Session = Depends(get_db)):
 def get_events(db: Session = Depends(get_db)):
     events = db.query(Event).order_by(Event.timestamp.desc()).limit(50).all()
     return events
+
+
+# 🚨 CONFIGURE PRICE ALERT
+class SetAlertRequest(BaseModel):
+    alert_price: Optional[float] = None
+
+
+@router.post("/products/{product_id}/alert")
+def set_product_alert(product_id: int, payload: SetAlertRequest, db: Session = Depends(get_db)):
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    product.alert_price = payload.alert_price
+    db.commit()
+    db.refresh(product)
+
+    # Log event
+    if product.alert_price is not None:
+        message = f"Set price alert on {product.name} at {get_currency_symbol(product.source)}{product.alert_price}"
+    else:
+        message = f"Removed price alert from {product.name}"
+    event = Event(type="ALERT_CONFIG", message=message, product_id=product.id)
+    db.add(event)
+    db.commit()
+
+    return {"status": "alert_price_updated", "alert_price": product.alert_price}
 
 
 # 🗑️ DELETE PRODUCT

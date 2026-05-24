@@ -11,6 +11,7 @@ class ProductResponse(BaseModel):
     price: float
     image: Optional[str] = None
     url: Optional[str] = None
+    alert_price: Optional[float] = None
 
     class Config:
         from_attributes = True
