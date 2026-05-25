@@ -18,9 +18,13 @@ class UserResponse(BaseModel):
     email: str
     username: str
     is_active: bool
+    telegram_chat_id: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+class UserUpdate(BaseModel):
+    telegram_chat_id: Optional[str] = None
 
 
 class Token(BaseModel):

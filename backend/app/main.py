@@ -5,6 +5,7 @@ from app.db.base import Base
 from app.db.session import engine
 from app.routes import products
 from app.routes import auth as auth_router
+from app.routes import collections as collections_router
 import app.models  # ensure all models are imported for table creation
 import asyncio
 import time
@@ -78,6 +79,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Mount routers
 app.include_router(products.router, prefix="/api")
 app.include_router(auth_router.router, prefix="/api")
+app.include_router(collections_router.router, prefix="/api")
 
 
 @app.get("/api/health")

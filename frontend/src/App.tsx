@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { RefreshCw, Package, Activity, DollarSign, ExternalLink, Bell, AlertCircle, CheckCircle, LogOut, Plus, User, Mail, Calendar, Shield, Key, TrendingUp } from 'lucide-react';
+import { RefreshCw, Package, Activity, DollarSign, ExternalLink, Bell, AlertCircle, CheckCircle, LogOut, Plus, User, Mail, Calendar, Shield, Key, TrendingUp, DownloadCloud, Sun, Moon } from 'lucide-react';
 import './style.css';
 
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
@@ -156,11 +156,30 @@ function Dashboard({ addToast }: any) {
     return () => clearInterval(interval);
   }, []);
 
+  const handleExportCSV = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/export`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'price_monitoring_data.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      addToast('Data exported successfully', 'success');
+    } catch (e: any) {
+      addToast('Failed to export CSV', 'error');
+    }
+  };
+
   return (
     <div className="animate-fade">
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
         <h1 className="page-title">Datacenter Control</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button onClick={handleExportCSV} className="btn-primary" style={{ padding: '8px 16px', background: 'var(--accent-primary)', color: 'white' }}>
+            <DownloadCloud size={16} /> Export CSV
+          </button>
           <div style={{ color: 'var(--text-muted)', fontSize: '14px', display: 'flex', alignItems: 'center' }}>
             <Activity size={14} className="animate-pulse" style={{ marginRight: 8, color: 'var(--accent-primary)' }} />
             Autonomous Sync Active
@@ -261,6 +280,9 @@ function ProductList({ addToast }: any) {
   const [searchQuery, setSearchQuery] = useState("");
   const [trackUrl, setTrackUrl] = useState("");
   const [isTracking, setIsTracking] = useState(false);
+  const [collections, setCollections] = useState<any[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
+  const [newFolderName, setNewFolderName] = useState('');
   const navigate = useNavigate();
 
   const fetchProducts = () => {
@@ -269,9 +291,29 @@ function ProductList({ addToast }: any) {
       .catch((e: any) => addToast(`Failed fetching directory: ${e.message}`, 'error'));
   };
 
+  const fetchCollections = () => {
+    axios.get(`${API_URL}/collections`)
+      .then(res => setCollections(res.data))
+      .catch(() => {});
+  };
+
   useEffect(() => {
     fetchProducts();
+    fetchCollections();
   }, [addToast]);
+
+  const handleCreateFolder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newFolderName) return;
+    try {
+      await axios.post(`${API_URL}/collections`, { name: newFolderName });
+      setNewFolderName('');
+      fetchCollections();
+      addToast('Folder created', 'success');
+    } catch (e) {
+      addToast('Failed to create folder', 'error');
+    }
+  };
 
   const handleTrackUrl = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -292,14 +334,58 @@ function ProductList({ addToast }: any) {
 
   const sources = Array.from(new Set(products.map(p => p.source)));
   const filteredProducts = products.filter(p => {
-    const matchSource = selectedSource ? p.source === selectedSource : true;
+    let filtered = products;
+    if (selectedSource) {
+      filtered = filtered.filter(p => p.source === selectedSource);
+    }
+    if (selectedFolder !== null) {
+      filtered = filtered.filter(p => p.collection_id === selectedFolder);
+    }
     const matchSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.brand?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchSource && matchSearch;
+    return filtered.includes(p) && matchSearch;
   });
 
   return (
-    <div className="animate-fade">
-      <div className="page-header" style={{ marginBottom: 24, display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="animate-fade" style={{ display: 'flex', gap: '24px', flexDirection: 'row' }}>
+      
+      {/* Folders Sidebar */}
+      <div style={{ width: '250px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="notifications-panel">
+          <h2 className="section-title"><Package size={18} className="text-accent-primary" /> Folders</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <button 
+              className={selectedFolder === null ? 'btn-primary' : 'btn-black'} 
+              style={{ width: '100%', justifyContent: 'flex-start' }}
+              onClick={() => setSelectedFolder(null)}
+            >
+              All Items
+            </button>
+            {collections.map(c => (
+              <button 
+                key={c.id} 
+                className={selectedFolder === c.id ? 'btn-primary' : 'btn-black'} 
+                style={{ width: '100%', justifyContent: 'flex-start' }}
+                onClick={() => setSelectedFolder(c.id)}
+              >
+                {c.name}
+              </button>
+            ))}
+          </div>
+          <form onSubmit={handleCreateFolder} style={{ marginTop: 16, display: 'flex', gap: 8 }}>
+            <input 
+              className="auth-input" 
+              placeholder="New folder..." 
+              value={newFolderName}
+              onChange={e => setNewFolderName(e.target.value)}
+              style={{ flex: 1, padding: '4px 8px' }}
+            />
+            <button type="submit" className="btn-primary" style={{ padding: '4px 8px' }}><Plus size={16}/></button>
+          </form>
+        </div>
+      </div>
+
+      <div style={{ flex: 1 }}>
+        <div className="page-header" style={{ marginBottom: 24, display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'space-between', alignItems: 'center' }}>
         <h1 className="page-title">Global Directory</h1>
 
         <input
@@ -369,6 +455,7 @@ function ProductList({ addToast }: any) {
             </div>
           </Link>
         ))}
+        </div>
       </div>
     </div>
   );
@@ -378,10 +465,15 @@ function ProductList({ addToast }: any) {
 function ProductDetail({ addToast }: any) {
   const [product, setProduct] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
+  const [collections, setCollections] = useState<any[]>([]);
   const [alertPriceInput, setAlertPriceInput] = useState("");
   const [updatingAlert, setUpdatingAlert] = useState(false);
   const id = window.location.pathname.split('/').pop();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    axios.get(`${API_URL}/collections`).then(res => setCollections(res.data)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     axios.get(`${API_URL}/products/${id}`)
@@ -459,6 +551,18 @@ function ProductDetail({ addToast }: any) {
     }
   };
 
+  const handleAssignFolder = async (collectionId: string) => {
+    if (!collectionId) return;
+    try {
+      await axios.post(`${API_URL}/collections/${collectionId}/products/${id}`);
+      addToast('Added to folder successfully', 'success');
+      const res = await axios.get(`${API_URL}/products/${id}`);
+      setProduct(res.data);
+    } catch (e: any) {
+      addToast('Failed to add to folder', 'error');
+    }
+  };
+
   if (!product) return <div className="animate-fade" style={{ fontSize: 24, textAlign: 'center', marginTop: 100, color: 'var(--accent-primary)' }}>Decrypting asset signatures...</div>;
 
   const lowestPrice = history.length > 0 ? Math.min(...history.map(h => h.price)) : product.price;
@@ -487,6 +591,23 @@ function ProductDetail({ addToast }: any) {
             <button onClick={handleDelete} className="btn-primary" style={{ background: '#ff0055', borderColor: '#ff0055', color: '#fff', padding: '10px 20px' }}>
               Stop Tracking
             </button>
+            <select 
+              className="auth-input" 
+              style={{ width: 'auto', padding: '10px 20px' }}
+              value={product.collection_id || ''}
+              onChange={(e) => handleAssignFolder(e.target.value)}
+            >
+              <option value="">No Folder</option>
+              {collections.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+
+          {/* Phase 4: Competitor Search */}
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '24px' }}>
+            <p style={{ width: '100%', color: 'var(--text-muted)', fontSize: 14, marginBottom: 4 }}>Compare Prices Across Web:</p>
+            <a href={`https://www.amazon.in/s?k=${encodeURIComponent(product.name)}`} target="_blank" rel="noopener noreferrer" className="btn-black" style={{ background: '#232f3e', color: 'white' }}>Search Amazon</a>
+            <a href={`https://www.flipkart.com/search?q=${encodeURIComponent(product.name)}`} target="_blank" rel="noopener noreferrer" className="btn-black" style={{ background: '#2874f0', color: 'white' }}>Search Flipkart</a>
+            <a href={`https://www.myntra.com/${encodeURIComponent(product.name)}`} target="_blank" rel="noopener noreferrer" className="btn-black" style={{ background: '#ff3f6c', color: 'white' }}>Search Myntra</a>
           </div>
 
           {/* Price Alert Configuration Card */}
@@ -621,6 +742,7 @@ function ProfileDashboard({ addToast }: any) {
   const [loading, setLoading] = useState(true);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
+  const [telegramId, setTelegramId] = useState('');
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -630,6 +752,7 @@ function ProfileDashboard({ addToast }: any) {
           axios.get(`${API_URL}/analytics`),
         ]);
         setUser(userRes.data);
+        if (userRes.data.telegram_chat_id) setTelegramId(userRes.data.telegram_chat_id);
         setStats(statsRes.data);
       } catch (e: any) {
         if (e.response?.status !== 401) addToast('Failed to load profile', 'error');
@@ -656,6 +779,15 @@ function ProfileDashboard({ addToast }: any) {
     ? new Date(user.created_at).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' })
     : 'N/A';
   const sourceCount = Object.keys(stats.by_source || {}).length;
+
+  const handleSaveTelegram = async () => {
+    try {
+      await axios.patch(`${API_URL}/auth/profile`, { telegram_chat_id: telegramId });
+      addToast('Telegram ID saved successfully', 'success');
+    } catch (e: any) {
+      addToast('Failed to save Telegram ID', 'error');
+    }
+  };
 
   if (loading) return <div className="animate-fade" style={{ fontSize: 24, textAlign: 'center', marginTop: 100, color: 'var(--accent-primary)' }}>Loading profile...</div>;
 
@@ -769,6 +901,27 @@ function ProfileDashboard({ addToast }: any) {
             </form>
           )}
         </div>
+
+        {/* External Integrations */}
+        <div className="notifications-panel">
+          <h2 className="section-title"><Bell className="text-accent-primary" /> Integrations</h2>
+          <div className="notification-list">
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: 8 }}>Telegram Chat ID</label>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <input
+                  className="auth-input"
+                  style={{ flex: 1 }}
+                  placeholder="e.g. 123456789"
+                  value={telegramId}
+                  onChange={e => setTelegramId(e.target.value)}
+                />
+                <button onClick={handleSaveTelegram} className="btn-primary">Save</button>
+              </div>
+              <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 8 }}>Find this by messaging @userinfobot on Telegram. You will receive price drops instantly on Telegram.</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Source Breakdown */}
@@ -793,6 +946,15 @@ function ProfileDashboard({ addToast }: any) {
 export default function App() {
   const { toasts, addToast, removeToast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -830,10 +992,13 @@ export default function App() {
         </div>
 
         <aside className="sidebar">
-          <div className="sidebar-header">
+          <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h1 className="logo-text">
               <Activity size={28} /> PriceMonitor
             </h1>
+            <button onClick={toggleTheme} className="nav-item" style={{ width: 'auto', background: 'transparent', padding: '8px', cursor: 'pointer' }}>
+              {theme === 'dark' ? <Sun size={20} color="var(--text-muted)" /> : <Moon size={20} color="var(--text-muted)" />}
+            </button>
           </div>
           <nav className="nav-links">
             <Link to="/" className="nav-item">

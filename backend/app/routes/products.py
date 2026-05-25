@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from app.db.session import SessionLocal
 from app.models.product import Product
 from app.models.price_history import PriceHistory
@@ -12,11 +13,13 @@ from app.services.ingestion import ingest_products, sync_real_time_data
 from app.services.scraper import fetch_page_content
 from app.services.parsers import get_parser
 from app.services.normalizer import clean_product_data, is_valid_product
+from app.services.email import send_tracking_started_email
 from app.services.retry import retry
 from typing import Optional
 from pydantic import BaseModel
 import logging
-
+import csv
+from io import StringIO
 logger = logging.getLogger(__name__)
 
 def get_currency_symbol(source: str) -> str:
@@ -43,6 +46,7 @@ def get_db():
 @router.get("/products", response_model=list[ProductResponse])
 def get_products(
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
     category: Optional[str] = None,
     source: Optional[str] = None,
     brand: Optional[str] = None,
@@ -51,7 +55,9 @@ def get_products(
     skip: int = 0,
     limit: int = 100
 ):
-    query = db.query(Product)
+    query = db.query(Product).filter(
+        or_(Product.alert_user_email == current_user.email, Product.alert_user_email == None)
+    )
 
     if category:
         query = query.filter(Product.category == category)
@@ -69,8 +75,11 @@ def get_products(
 
 # 🔍 GET SINGLE PRODUCT
 @router.get("/products/{product_id}", response_model=ProductResponse)
-def get_product(product_id: int, db: Session = Depends(get_db)):
-    product = db.query(Product).filter(Product.id == product_id).first()
+def get_product(product_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        or_(Product.alert_user_email == current_user.email, Product.alert_user_email == None)
+    ).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     return product
@@ -78,7 +87,14 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
 
 # 📈 PRICE HISTORY
 @router.get("/products/{product_id}/history")
-def get_price_history(product_id: int, db: Session = Depends(get_db)):
+def get_price_history(product_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        or_(Product.alert_user_email == current_user.email, Product.alert_user_email == None)
+    ).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
     history = db.query(PriceHistory).filter(
         PriceHistory.product_id == product_id
     ).order_by(PriceHistory.timestamp.asc()).all()
@@ -102,8 +118,11 @@ async def track_url(payload: TrackUrlRequest, db: Session = Depends(get_db), cur
     """
     url = payload.url.strip()
 
-    # Check if already tracked
-    existing = db.query(Product).filter(Product.url == url).first()
+    if "amazon" in url.lower():
+        raise HTTPException(status_code=400, detail="Amazon is not currently supported due to strict anti-bot measures.")
+
+    # Check if already tracked by THIS user
+    existing = db.query(Product).filter(Product.url == url, Product.alert_user_email == current_user.email).first()
     if existing:
         return {"status": "already_tracked", "product_id": existing.id, "product": {
             "id": existing.id, "name": existing.name, "price": existing.price,
@@ -113,20 +132,24 @@ async def track_url(payload: TrackUrlRequest, db: Session = Depends(get_db), cur
     # Fetch and parse
     html = await retry(fetch_page_content, url)
     if not html:
+        logger.error(f"Failed to fetch HTML for {url}")
         raise HTTPException(status_code=422, detail="Could not fetch the URL. The site may be blocking scrapers.")
 
     parser, source_name = get_parser(url)
     parsed_data = parser(html)
 
     if not parsed_data.get("price"):
+        logger.error(f"Failed to extract price for {url}. Parsed data: {parsed_data}")
         raise HTTPException(status_code=422, detail="Could not extract price from this URL. The page structure may not be supported yet.")
 
     product_data = clean_product_data(parsed_data, source_name, url)
 
     if not is_valid_product(product_data):
+        logger.error(f"Invalid product data for {url}: {product_data}")
         raise HTTPException(status_code=422, detail="Scraped data is invalid, looks like a bot-check page or missing information. Please try again.")
 
     product = Product(**product_data)
+    product.alert_user_email = current_user.email  # Associate with profile
     db.add(product)
     db.commit()
     db.refresh(product)
@@ -137,6 +160,15 @@ async def track_url(payload: TrackUrlRequest, db: Session = Depends(get_db), cur
     db.commit()
 
     logger.info(f"✅ Tracked new product: {product.name} from {source_name} @ {get_currency_symbol(source_name)}{product.price}")
+    
+    # Send confirmation email
+    send_tracking_started_email(
+        product_name=product.name,
+        product_url=product.url,
+        current_price=product.price,
+        currency_symbol=get_currency_symbol(source_name),
+        recipient_email=current_user.email
+    )
 
     return {"status": "tracking_started", "product_id": product.id, "product": {
         "id": product.id, "name": product.name, "price": product.price,
@@ -146,8 +178,11 @@ async def track_url(payload: TrackUrlRequest, db: Session = Depends(get_db), cur
 
 # 📊 AGGREGATE ANALYTICS (with purchase count per site)
 @router.get("/analytics")
-def analytics(db: Session = Depends(get_db)):
-    total = db.query(Product).count()
+def analytics(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    user_query = db.query(Product).filter(
+        or_(Product.alert_user_email == current_user.email, Product.alert_user_email == None)
+    )
+    total = user_query.count()
     if total == 0:
         return {
             "total_products": 0,
@@ -158,25 +193,35 @@ def analytics(db: Session = Depends(get_db)):
             "active_anomalies": 0,
         }
 
-    avg_price = db.query(func.avg(Product.price)).scalar() or 0
+    avg_price = db.query(func.avg(Product.price)).filter(
+        or_(Product.alert_user_email == current_user.email, Product.alert_user_email == None)
+    ).scalar() or 0
 
-    sources = db.query(Product.source, func.count(Product.id)).group_by(Product.source).all()
+    sources = db.query(Product.source, func.count(Product.id)).filter(
+        or_(Product.alert_user_email == current_user.email, Product.alert_user_email == None)
+    ).group_by(Product.source).all()
     by_source = {s[0]: s[1] for s in sources}
 
-    categories = db.query(Product.category, func.avg(Product.price)).group_by(Product.category).all()
+    categories = db.query(Product.category, func.avg(Product.price)).filter(
+        or_(Product.alert_user_email == current_user.email, Product.alert_user_email == None)
+    ).group_by(Product.category).all()
     by_category = {c[0]: round(c[1], 2) for c in categories}
 
     # Purchase count = number of price_history records per source (proxy for engagement/checks)
     purchases_by_source_raw = (
         db.query(Product.source, func.count(PriceHistory.id))
         .join(PriceHistory, PriceHistory.product_id == Product.id)
+        .filter(or_(Product.alert_user_email == current_user.email, Product.alert_user_email == None))
         .group_by(Product.source)
         .all()
     )
     purchases_by_source = {row[0]: row[1] for row in purchases_by_source_raw}
 
-    # Count anomalies
-    anomalies_count = db.query(Event).filter(Event.type.in_(["PRICE_CHANGE", "PRICE_ALERT"])).count()
+    # Count anomalies for this user's products
+    anomalies_count = db.query(Event).join(Product, Event.product_id == Product.id).filter(
+        or_(Product.alert_user_email == current_user.email, Product.alert_user_email == None),
+        Event.type.in_(["PRICE_CHANGE", "PRICE_ALERT"])
+    ).count()
 
     return {
         "total_products": total,
@@ -190,8 +235,10 @@ def analytics(db: Session = Depends(get_db)):
 
 # 🔔 EVENTS
 @router.get("/events")
-def get_events(db: Session = Depends(get_db)):
-    events = db.query(Event).order_by(Event.timestamp.desc()).limit(50).all()
+def get_events(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    events = db.query(Event).join(Product, Event.product_id == Product.id).filter(
+        or_(Product.alert_user_email == current_user.email, Product.alert_user_email == None)
+    ).order_by(Event.timestamp.desc()).limit(50).all()
     return events
 
 
@@ -201,12 +248,22 @@ class SetAlertRequest(BaseModel):
 
 
 @router.post("/products/{product_id}/alert")
-def set_product_alert(product_id: int, payload: SetAlertRequest, db: Session = Depends(get_db)):
-    product = db.query(Product).filter(Product.id == product_id).first()
+def set_product_alert(
+    product_id: int, 
+    payload: SetAlertRequest, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        or_(Product.alert_user_email == current_user.email, Product.alert_user_email == None)
+    ).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
     product.alert_price = payload.alert_price
+    product.alert_user_email = current_user.email if payload.alert_price is not None else None
+    
     db.commit()
     db.refresh(product)
 
@@ -224,10 +281,38 @@ def set_product_alert(product_id: int, payload: SetAlertRequest, db: Session = D
 
 # 🗑️ DELETE PRODUCT
 @router.delete("/products/{product_id}")
-def delete_product(product_id: int, db: Session = Depends(get_db)):
-    product = db.query(Product).filter(Product.id == product_id).first()
+def delete_product(product_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        Product.alert_user_email == current_user.email
+    ).first()
     if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=403, detail="You can only delete products you tracked yourself.")
     db.delete(product)
     db.commit()
     return {"status": "deleted", "product_id": product_id}
+
+# 📥 EXPORT TO CSV
+@router.get("/export")
+def export_products_csv(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    products = db.query(Product).filter(
+        or_(Product.alert_user_email == current_user.email, Product.alert_user_email == None)
+    ).all()
+
+    # Create CSV in memory
+    output = StringIO()
+    writer = csv.writer(output)
+    
+    # Header
+    writer.writerow(["ID", "Name", "Brand", "Category", "Source", "URL", "Current Price", "Alert Price"])
+    
+    for p in products:
+        writer.writerow([p.id, p.name, p.brand, p.category, p.source, p.url, p.price, p.alert_price])
+        
+    output.seek(0)
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=price_monitoring_data.csv"}
+    )

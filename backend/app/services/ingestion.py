@@ -9,6 +9,9 @@ from app.services.notification import send_notification
 from app.services.retry import retry
 from app.services.scraper import fetch_page_content
 from app.services.discovery import discover_all
+from app.services.email import send_price_alert_email
+from app.services.telegram import send_telegram_alert
+from app.models.user import User
 import logging
 from datetime import datetime
 
@@ -57,6 +60,17 @@ async def ingest_products(db: Session, background_tasks=None):
                     sym = get_currency_symbol(product_data["source"])
                     message = f"🚨 ALERT TRIGGERED: {existing.name} dropped to {sym}{product_data['price']} (below threshold of {sym}{existing.alert_price})"
                     event_type = "PRICE_ALERT"
+                    
+                    # Trigger Email
+                    if existing.alert_user_email:
+                        send_price_alert_email(
+                            product_name=existing.name,
+                            product_url=existing.url,
+                            new_price=product_data["price"],
+                            target_price=existing.alert_price,
+                            currency_symbol=sym,
+                            recipient_email=existing.alert_user_email
+                        )
                 else:
                     message = f"{existing.name} price changed: {existing.price} → {product_data['price']}"
                     event_type = "PRICE_CHANGE"
@@ -170,6 +184,28 @@ async def sync_real_time_data(db: Session, background_tasks=None):
                 sym = get_currency_symbol(product.source)
                 message = f"🚨 ALERT TRIGGERED: {product.name} dropped to {sym}{new_price} (below threshold of {sym}{product.alert_price})"
                 event_type = "PRICE_ALERT"
+                
+                # Trigger Email
+                if product.alert_user_email:
+                    send_price_alert_email(
+                        product_name=product.name,
+                        product_url=product.url,
+                        new_price=new_price,
+                        target_price=product.alert_price,
+                        currency_symbol=sym,
+                        recipient_email=product.alert_user_email
+                    )
+                    
+                    user = db.query(User).filter(User.email == product.alert_user_email).first()
+                    if user and user.telegram_chat_id:
+                        send_telegram_alert(
+                            chat_id=user.telegram_chat_id,
+                            product_name=product.name,
+                            product_url=product.url,
+                            new_price=new_price,
+                            target_price=product.alert_price,
+                            currency_symbol=sym
+                        )
             else:
                 message = f"REAL-TIME UPDATE: {product.name} price changed: {product.price} → {new_price}"
                 event_type = "PRICE_CHANGE"

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, Integer, String, Float, ForeignKey
 from sqlalchemy.orm import relationship
 from app.db.base import Base
 
@@ -15,5 +15,7 @@ class Product(Base):
     image = Column(String)
     url = Column(String)
     alert_price = Column(Float, nullable=True, index=True)
+    alert_user_email = Column(String, nullable=True)
+    collection_id = Column(Integer, ForeignKey("collections.id", ondelete="SET NULL"), nullable=True)
 
     price_history = relationship("PriceHistory", back_populates="product", cascade="all, delete-orphan")

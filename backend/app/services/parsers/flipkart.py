@@ -93,6 +93,16 @@ def parse(html: str) -> dict:
                         break
                     except ValueError:
                         continue
+        
+        # Generic Regex Fallback (Catches prices hidden in scripts or randomized classes)
+        if not price:
+            match = re.search(r'₹\s*([\d,]+)', html)
+            if match:
+                try:
+                    price = float(match.group(1).replace(",", ""))
+                except ValueError:
+                    pass
+        
         result["price"] = price or 0.0
 
     # 4. Image Fallback

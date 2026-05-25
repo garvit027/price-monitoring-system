@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import SessionLocal
 from app.models.user import User
-from app.schemas.auth import UserCreate, UserLogin, Token, UserResponse
+from app.schemas.auth import UserCreate, UserLogin, Token, UserResponse, UserUpdate
 from app.services.auth import verify_password, get_password_hash, create_access_token, decode_access_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -69,4 +69,13 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
 
 @router.get("/me", response_model=UserResponse)
 def me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+@router.patch("/profile", response_model=UserResponse)
+def update_profile(data: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if data.telegram_chat_id is not None:
+        current_user.telegram_chat_id = data.telegram_chat_id
+    db.commit()
+    db.refresh(current_user)
     return current_user

@@ -12,6 +12,7 @@ class ProductResponse(BaseModel):
     image: Optional[str] = None
     url: Optional[str] = None
     alert_price: Optional[float] = None
+    collection_id: Optional[int] = None
 
     class Config:
         from_attributes = True
